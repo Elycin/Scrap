@@ -54,7 +54,7 @@ Scrap has the ability via the form of a cronjob every hour or console command vi
 
 To set up automatic scheduling, add this line to your crontab:
 ```bash
-* * * * php /path/to/scrap/artisan schedule:run >> /dev/null/2>&1
+* * * * * php /path/to/scrap/artisan schedule:run >> /dev/null/2>&1
 ```
 
 Or you may choose to manually run the cleanup by:
