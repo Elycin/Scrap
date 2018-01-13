@@ -22,6 +22,20 @@ class Controller extends BaseController
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
     /**
+     * Auth By Request Parameters
+     * (is valid check)
+     *
+     * Authenticates the user by the username and password parameters provided.
+     *
+     * @param Request $request
+     * @return bool
+     */
+    private function authByRequestValid(Request $request)
+    {
+        return Auth::attempt(["username" => $request->input("username"), "password" => $request->input("password")]);
+    }
+
+    /**
      * Upload
      *
      * The function that handles the request logic and authentication to upload files.
@@ -31,7 +45,7 @@ class Controller extends BaseController
      */
     public function upload(Request $request)
     {
-        if (Auth::attempt(["username" => $request->input("username"), "password" => $request->input("password")])) {
+        if ($this->authByRequestValid($request)) {
             if ($request->has("file")) {
                 // Attempt to store the file
                 $upload_result = $this->storeFile($request->file("file"), $request->has("encrypt"));
@@ -215,7 +229,7 @@ class Controller extends BaseController
     {
         if ($resolver->encrypted_size < intval(config('app.file_cache_threshold'))) {
             // The file can be cached.
-            return  Cache::tags('file_stream')->remember($resolver->hash, intval(config('app.file_cache_threshold', 10)), function () use ($resolver) {
+            return Cache::tags('file_stream')->remember($resolver->hash, intval(config('app.file_cache_threshold', 10)), function () use ($resolver) {
                 $data_stream = Storage::get("files/" . $resolver->hash);
                 return ($resolver->encrypted) ? Crypt::decrypt($data_stream) : $data_stream;
             });
