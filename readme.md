@@ -21,12 +21,13 @@ If you tweak your memory limit on memcached, you can also use that if specified 
 
 ## Installation
 ```bash
-git clone https://github.com/Elycin/Scrap
-cd Scrap
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate
+$ git clone https://github.com/Elycin/Scrap
+$ cd Scrap
+$ composer install
+$ cp .env.example .env
+# At this point, please edit the .env and configure the database with MySQL. 
+$ php artisan key:generate
+$ php artisan migrate
 ```
 
 Want a single threaded ready to go instance rather than configuring a webserver?  
