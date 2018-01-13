@@ -287,4 +287,24 @@ class Controller extends BaseController
 
         return dd(Cache::tags('file_stream')->has($resolver_result->hash));
     }
+
+    public function deleteFile(Request $request)
+    {
+        if ($this->authByRequestValid($request)) {
+            // Get Metadata
+            $file_result = Cache::tags('file_model')->remember(strtolower($request->input("filename")), config('app.cache_time', 10), function () use ($request) {
+                return Upload::where('alias', $request->input("filename"))->firstOrFail();
+            });
+
+            if ($file_result->user_id == Auth::user()->id) {
+                $file_result->delete();
+                return response("OK", 200);
+            } else {
+                return abort(403);
+            }
+        } else {
+            return abort(403);
+        }
+
+    }
 }
