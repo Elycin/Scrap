@@ -168,7 +168,7 @@ return [
     */
 
     'file_cache_time' => intval(env('FILE_CACHE_TIME', 10)),
-    'file_cache_threshold' => intval(env('FILE_CACHE_THRESHOLD', 2097152)),
+    'file_cache_threshold' => intval(env('FILE_CACHE_THRESHOLD', 5242880)),
     'days_to_store' => intval(env('DAYS_TO_STORE', 10)),
 
 
