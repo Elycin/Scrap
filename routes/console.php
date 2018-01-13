@@ -11,6 +11,7 @@
 |
 */
 
+use App\FileResolver;
 use App\Upload;
 use Carbon\Carbon;
 
@@ -31,6 +32,6 @@ Artisan::command('clean:files', function () {
     Upload::where('created_at', '>=', $expiration_date->toDateTimeString())->delete();
 
     //Iterate over each resolver and find where 0 uploads are.
-    $resolvers = \App\FileResolver::all();
+    $resolvers = FileResolver::all();
     foreach ($resolvers as $resolver) if (Upload::where('resolver_id', $resolver->id)->get()->count() == 0) $resolver->delete();
 })->describe('Deletes old files that are no longer being used.');
