@@ -14,3 +14,4 @@
 Route::post('/upload', 'Controller@upload');
 Route::get('/{filename}', 'Controller@getFile');
 Route::get('/{filename}/is-cached', 'Controller@isFileCached');
+Route::post('/{filename}/delete', 'Controller@deleteFile');
