@@ -122,8 +122,55 @@ return [
     */
 
     'log' => env('APP_LOG', 'single'),
-
     'log_level' => env('APP_LOG_LEVEL', 'debug'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Database Call Caching
+    |--------------------------------------------------------------------------
+    |
+    | Database calls can be quite expensive on CPU time.
+    | The goal of this application was to focus on performance.
+    | changing this value will have an effect with how long database
+    | results will stay in memory.
+    |
+    */
+    'APP_CACHE_TIME' => intval(env('APP_CACHE_TIME', 10)),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Filename Basename Length
+    |--------------------------------------------------------------------------
+    |
+    | Here you can decide the minimum and maximum of how long the basename
+    | of a filename should be.
+    |
+    */
+    'minimum_file_basename_length' => intval(env('MIN_FILE_BASENAME_LENGTH', 6)),
+    'maximum_file_basename_length' => intval(env('MAX_FILE_BASENAME_LENGTH', 13)),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Application Cache Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Scrap uses the cache heavily for performance.
+    | These are just settings the application will read and reflect from
+    | the .env file. Please change them there.
+    |
+    | > FILE_CACHE_TIME - Number of minutes to store files under
+                          FILE_CACHE_THRESHOLD bytes in memory.
+
+    | > FILE_CACHE_THRESHOLD - any files under this number in bytes will
+                               be stored in memory.
+
+    | > DAYS_TO_STORE - How long should uploaded files remain on the server?
+    */
+
+    'file_cache_time' => intval(env('FILE_CACHE_TIME', 10)),
+    'file_cache_threshold' => intval(env('FILE_CACHE_THRESHOLD', 2097152)),
+    'days_to_store' => intval(env('DAYS_TO_STORE', 10)),
+
 
     /*
     |--------------------------------------------------------------------------

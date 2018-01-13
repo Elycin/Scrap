@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-
 /*
 |--------------------------------------------------------------------------
 | Console Routes
@@ -13,6 +11,12 @@ use Illuminate\Foundation\Inspiring;
 |
 */
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->describe('Display an inspiring quote');
+Artisan::command('make:user {name} {username} {password}', function ($name, $username, $password) {
+    $new_user = \App\User::create([
+        "name" => $name,
+        "username" => $username,
+        "password" => bcrypt($password)
+    ]);
+
+    echo sprintf("Created: %s\n", $new_user);
+})->describe('Create a user account');
