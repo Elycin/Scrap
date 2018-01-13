@@ -135,7 +135,7 @@ return [
     | results will stay in memory.
     |
     */
-    'APP_CACHE_TIME' => intval(env('APP_CACHE_TIME', 10)),
+    'cache_time' => intval(env('APP_CACHE_TIME', 10)),
 
     /*
     |--------------------------------------------------------------------------
