@@ -35,3 +35,9 @@ Artisan::command('clean:files', function () {
     $resolvers = FileResolver::all();
     foreach ($resolvers as $resolver) if (Upload::where('resolver_id', $resolver->id)->get()->count() == 0) $resolver->delete();
 })->describe('Deletes old files that are no longer being used.');
+
+Artisan::command('test:upload {alias}', function ($alias) {
+    $upload = Upload::getCached($alias);
+    $resolver = FileResolver::getCachedFromUpload($upload);
+    dd($upload, $resolver);
+})->describe('Test upload data');

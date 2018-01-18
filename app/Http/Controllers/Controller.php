@@ -73,7 +73,7 @@ class Controller extends BaseController
      * @param bool $encrypt
      * @return mixed
      */
-    public function storeFile(UploadedFile $file, $encrypt = false)
+    public function storeFile(UploadedFile $file, bool $encrypt = false)
     {
         //data variable - will be reassigned if encrypted
         $data = file_get_contents($file);
@@ -93,7 +93,7 @@ class Controller extends BaseController
         $hash = hash(FileResolver::$hash_method, $data);
 
         // Generate a file path so we don't have to constantly call the same thing
-        $file_path = "files/" . $hash;
+        $path = "files/" . $hash;
 
         // Try to create a database record for the resolver.
         try {
@@ -121,7 +121,7 @@ class Controller extends BaseController
             ]);
         } catch (\Exception $exception) {
             // If we've gotten this far, a file has been stored and we should delete it.
-            Storage::delete($file_path);
+            Storage::delete($path);
 
             // A single record has been made, and we should get rid of it.
             $resolver_result->delete();
@@ -132,7 +132,9 @@ class Controller extends BaseController
 
         // Try to write the file if it doesn't exist.
         try {
-            if (!Storage::has($file_path)) Storage::put($file_path, $data);
+            if (!Storage::has($path)) {
+                Storage::put($path, $data);
+            }
         } catch (\Exception $exception) {
             //Delete database records, failed to write.
             $resolver_result->delete();
@@ -181,31 +183,27 @@ class Controller extends BaseController
     public function getFile($filename)
     {
         // Get metadata from database, fail if it doesn't exist.
-        $file_result = Cache::tags('file_model')->remember(strtolower($filename), config('app.cache_time', 10), function () use ($filename) {
-            return Upload::where('alias', $filename)->firstOrFail();
-        });
-        $resolver_result = Cache::tags('resolver_model')->remember(strtolower($filename), config('app.cache_time', 10), function () use ($file_result) {
-            return FileResolver::where('id', $file_result->resolver_id)->firstOrFail();
-        });
+        $file = Upload::getCached($filename);
+        $resolver = FileResolver::getCachedFromUpload($file);
 
         // Check to make sure the file exists on the disk
-        if (Storage::has("files/" . $resolver_result->hash)) {
+        if (Storage::has($resolver->getHashPath())) {
 
             // Get the data from the getter
-            $data = $this->dataGetter($resolver_result);
+            $data = $this->dataGetter($resolver);
 
             // Compile the headers
             $headers = [
-                "Content-Length" => $resolver_result->size,
-                "Content-Type" => $resolver_result->mime,
-                "Content-Disposition" => sprintf('inline; filename="%s"', $file_result->original_filename)
+                "Content-Length" => $resolver->getSize(),
+                "Content-Type" => $resolver->getMime(),
+                "Content-Disposition" => sprintf('inline; filename="%s"', $file->original_filename)
             ];
 
             // Return to the user.
             return response($data, 200, $headers);
         } else {
             // The file does not exist on the disk, we should delete the database entries.
-            $this->deleteByResolver($resolver_result);
+            $this->deleteByResolver($resolver);
 
             // Return a 404 to the user.
             return (env('APP_ENV', 'production') == "debug") ? response("HTTP 1.1 / 404 - Forbidden", 404) : abort(404);
@@ -227,16 +225,16 @@ class Controller extends BaseController
      */
     private function dataGetter(FileResolver $resolver)
     {
-        if ($resolver->encrypted_size < intval(config('app.file_cache_threshold'))) {
+        if ($resolver->getEncryptedSize() < intval(config('app.file_cache_threshold'))) {
             // The file can be cached.
             return Cache::tags('file_stream')->remember($resolver->hash, intval(config('app.file_cache_threshold', 10)), function () use ($resolver) {
-                $data_stream = Storage::get("files/" . $resolver->hash);
-                return ($resolver->encrypted) ? Crypt::decrypt($data_stream) : $data_stream;
+                $data_stream = Storage::get($resolver->getHashPath());
+                return ($resolver->isEncrypted()) ? Crypt::decrypt($data_stream) : $data_stream;
             });
         } else {
             // The file is too large for the cache
-            $data_stream = Storage::get("files/" . $resolver->hash);
-            return ($resolver->encrypted) ? Crypt::decrypt($data_stream) : $data_stream;
+            $data_stream = Storage::get($resolver->getHashPath());
+            return ($resolver->isEncrypted()) ? Crypt::decrypt($data_stream) : $data_stream;
         }
     }
 
@@ -253,9 +251,7 @@ class Controller extends BaseController
     {
         // Get the results, going to need the filenames to purge the caches.
         $uploads = Upload::where('resolver_id', $resolver->id)->get();
-        foreach ($uploads as $upload) {
-            Cache::tags('file_model')->forget(strtolower($upload->filename));
-        }
+        foreach ($uploads as $upload) Cache::tags('file_model')->forget(strtolower($upload->filename));
 
         // Remove the resolver hash if it exists.
         Cache::tags('file_stream')->forget($resolver->hash);
@@ -278,26 +274,30 @@ class Controller extends BaseController
      */
     public function isFileCached($filename)
     {
-        $file_result = Cache::tags('file_model')->remember(strtolower($filename), config('app.cache_time', 10), function () use ($filename) {
-            return Upload::where('alias', $filename)->firstOrFail();
-        });
-        $resolver_result = Cache::tags('resolver_model')->remember(strtolower($filename), config('app.cache_time', 10), function () use ($file_result) {
-            return FileResolver::where('id', $file_result->resolver_id)->firstOrFail();
-        });
+        $file = Upload::getCached($filename);
+        $resolver = FileResolver::getCachedFromUpload($file);
 
-        return dd(Cache::tags('file_stream')->has($resolver_result->hash));
+        return dd(Cache::tags('file_stream')->has($resolver->hash));
     }
 
+    /**
+     * Delete File
+     *
+     * Deletes the file from the database, and even the disk.
+     *
+     * @param Request $request
+     * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
+     * @throws \Exception
+     */
     public function deleteFile(Request $request)
     {
         if ($this->authByRequestValid($request)) {
             // Get Metadata
-            $file_result = Cache::tags('file_model')->remember(strtolower($request->input("filename")), config('app.cache_time', 10), function () use ($request) {
-                return Upload::where('alias', $request->input("filename"))->firstOrFail();
-            });
+            $file = Upload::getCached($request->input("filename"));
 
-            if ($file_result->user_id == Auth::user()->id) {
-                $file_result->delete();
+            if ($file->getOwnerId() == Auth::user()->id) {
+                $file->uncache();
+                $file->delete();
                 return response("OK", 200);
             } else {
                 return abort(403);
@@ -305,6 +305,6 @@ class Controller extends BaseController
         } else {
             return abort(403);
         }
-
     }
+
 }
