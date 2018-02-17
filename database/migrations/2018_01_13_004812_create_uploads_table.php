@@ -19,6 +19,7 @@ class CreateUploadsTable extends Migration
             $table->unsignedInteger('resolver_id');
             $table->string("original_filename");
             $table->string("alias");
+            $table->timestamp("user_expiration");
             $table->timestamps();
         });
     }

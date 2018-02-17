@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\FileResolver;
 use App\Library\HostInfo;
 use App\Upload;
+use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -48,7 +49,7 @@ class Controller extends BaseController
         if ($this->authByRequestValid($request)) {
             if ($request->has("file")) {
                 // Attempt to store the file
-                $upload_result = $this->storeFile($request->file("file"), $request->has("encrypt"));
+                $upload_result = $this->storeFile($request->file("file"), $request);
 
                 // Return the URL to the user with a 201 for created
                 return response(
@@ -70,26 +71,26 @@ class Controller extends BaseController
      * The function that will handle request logic to store files on the disk.
      *
      * @param UploadedFile $file
-     * @param bool $encrypt
+     * @param bool         $encrypt
      * @return mixed
      */
-    public function storeFile(UploadedFile $file, bool $encrypt = false)
+    public function storeFile(UploadedFile $file, Request $request)
     {
-        //data variable - will be reassigned if encrypted
+        // data variable - will be reassigned if encrypted
         $data = file_get_contents($file);
 
-        //get the unencrypted size
+        // get the unencrypted size
         $size = $file->getSize();
 
-        //determine if we should encrypt.
-        if ($encrypt) {
+        // determine if we should encrypt.
+        if ($request->has("encrypt")) {
             $data = Crypt::encrypt($data);
             $encrypted_size = strlen($data);
         } else {
             $encrypted_size = $size;
         }
 
-        //hash the data variable as a unique identifier
+        // hash the data variable as a unique identifier
         $hash = hash(FileResolver::$hash_method, $data);
 
         // Generate a file path so we don't have to constantly call the same thing
@@ -99,11 +100,11 @@ class Controller extends BaseController
         try {
             if (!$resolver_result = FileResolver::where('hash', $hash)->first()) {
                 $resolver_result = FileResolver::create([
-                    "hash" => $hash,
-                    "mime" => $file->getClientMimeType(),
-                    "size" => $file->getSize(),
+                    "hash"           => $hash,
+                    "mime"           => $file->getClientMimeType(),
+                    "size"           => $file->getSize(),
                     "encrypted_size" => $encrypted_size,
-                    "encrypted" => $encrypt
+                    "encrypted"      => $request->has("encrypt"),
                 ]);
             }
         } catch (\Exception $exception) {
@@ -114,10 +115,11 @@ class Controller extends BaseController
         // Try to create a database record for the alias.
         try {
             $upload_result = Upload::create([
-                "user_id" => Auth::user()->id,
-                "resolver_id" => $resolver_result->id,
+                "user_id"           => Auth::user()->id,
+                "resolver_id"       => $resolver_result->id,
                 "original_filename" => $file->getClientOriginalName(),
-                "alias" => $this->filenameGenerator($file->getClientOriginalExtension())
+                "alias"             => $this->filenameGenerator($file->getClientOriginalExtension()),
+                "user_expiration"   => ($request->has("expires")) ? Carbon::parse($request->input("expires"))->toDateTimeString() : null
             ]);
         } catch (\Exception $exception) {
             // If we've gotten this far, a file has been stored and we should delete it.
@@ -153,7 +155,7 @@ class Controller extends BaseController
      *
      * Consults with the database to create an alias that is not used.
      *
-     * @param $extension
+     * @param     $extension
      * @param int $min_override
      * @param int $max_override
      * @return string
@@ -182,9 +184,21 @@ class Controller extends BaseController
      */
     public function getFile($filename)
     {
-        // Get metadata from database, fail if it doesn't exist.
+        // Get alias data from database, fail if it doesn't exist.
         $file = Upload::getCached($filename);
+
+        // Get resolver data from database.
         $resolver = FileResolver::getCachedFromUpload($file);
+
+        // Check to see if the file has expired.
+        if ($file->hasUserDefinedExpirationDate() && $file->userDefinedExpirationDateIsExpired()) {
+            // Delete the file.
+            $this->deleteByResolver($resolver);
+
+            // Return a fake error.
+            return abort(404);
+        };
+
 
         // Check to make sure the file exists on the disk
         if (Storage::has($resolver->getHashPath())) {
@@ -194,8 +208,8 @@ class Controller extends BaseController
 
             // Compile the headers
             $headers = [
-                "Content-Length" => $resolver->getSize(),
-                "Content-Type" => $resolver->getMime(),
+                "Content-Length"      => $resolver->getSize(),
+                "Content-Type"        => $resolver->getMime(),
                 "Content-Disposition" => sprintf('inline; filename="%s"', $file->original_filename)
             ];
 
@@ -229,11 +243,13 @@ class Controller extends BaseController
             // The file can be cached.
             return Cache::tags('file_stream')->remember($resolver->hash, intval(config('app.file_cache_threshold', 10)), function () use ($resolver) {
                 $data_stream = Storage::get($resolver->getHashPath());
+
                 return ($resolver->isEncrypted()) ? Crypt::decrypt($data_stream) : $data_stream;
             });
         } else {
             // The file is too large for the cache
             $data_stream = Storage::get($resolver->getHashPath());
+
             return ($resolver->isEncrypted()) ? Crypt::decrypt($data_stream) : $data_stream;
         }
     }
@@ -298,6 +314,7 @@ class Controller extends BaseController
             if ($file->getOwnerId() == Auth::user()->id) {
                 $file->uncache();
                 $file->delete();
+
                 return response("OK", 200);
             } else {
                 return abort(403);

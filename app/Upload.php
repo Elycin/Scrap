@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -65,5 +66,21 @@ class Upload extends Model
     {
         return $this->alias;
     }
+
+    public function hasUserDefinedExpirationDate()
+    {
+        return isset($this->user_expiration);
+    }
+
+    public function getUserDefinedExpirationDate()
+    {
+        return $this->user_expiration;
+    }
+
+    public function userDefinedExpirationDateIsExpired()
+    {
+        return Carbon::now()->gt(Carbon::parse($this->getUserDefinedExpirationDate()));
+    }
+
 
 }
