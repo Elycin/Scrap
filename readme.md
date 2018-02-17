@@ -40,7 +40,11 @@ In ShareX, you should be able to specify a custom domain such as `http://$YOUR_D
 - `password` - Your password
 - `file` - The uploaded file (also known as the "File form upload" field)
 
-Additionally, you can provide a `encrypt` parameter if you wish for the files to be encrypted on the disk where the application runs.
+## Optional Parameters
+Below are additional parameters you can pass to modify information about the uploaded file.
+
+- `encrypt` (true/false) - Encrypt the user data.
+- `expires` (datetime/timestamp) - Expiration date of the file.
 
 ## Cache Server Usage
 The use of redis is recommended, and more so required for this application.
