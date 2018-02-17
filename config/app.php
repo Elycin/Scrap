@@ -139,11 +139,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Filename generation style
+    |--------------------------------------------------------------------------
+    |
+    | 0: "Traditional" naming, eg. 'J0nIVwPi'
+    | 1: Dictionary naming. easy to remember.
+         Built like this: Vowel + Color + Animal + Single-digit number
+         eg. "FluffyCyanDog6"
+    |
+    */
+    'file_name_style' => 0,
+
+    /*
+    |--------------------------------------------------------------------------
     | Filename Basename Length
     |--------------------------------------------------------------------------
     |
     | Here you can decide the minimum and maximum of how long the basename
     | of a filename should be.
+    |
+    | **Only used with filename style "Tradititonal" (file_name_style 0)**
     |
     */
     'minimum_file_basename_length' => intval(env('MIN_FILE_BASENAME_LENGTH', 6)),
