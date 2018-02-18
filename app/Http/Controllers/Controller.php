@@ -101,7 +101,7 @@ class Controller extends BaseController
             if (!$resolver_result = FileResolver::where('hash', $hash)->first()) {
                 $resolver_result = FileResolver::create([
                     "hash"           => $hash,
-                    "mime"           => $file->getClientMimeType(),
+                    "mime"           => $file->getMimeType(),
                     "size"           => $file->getSize(),
                     "encrypted_size" => $encrypted_size,
                     "encrypted"      => $request->has("encrypt"),
@@ -158,19 +158,56 @@ class Controller extends BaseController
      * @param     $extension
      * @param int $min_override
      * @param int $max_override
+     * @param int $style_override
      * @return string
      */
-    private function filenameGenerator($extension, $min_override = 6, $max_override = 13)
+    private function filenameGenerator($extension, $min_override = 6, $max_override = 13, $style_override = 0)
     {
-        $min_decision = intval(config('app.minimum_file_basename_length', $min_override));
-        $max_decision = intval(config('app.maximum_file_basename_length', $max_override));
+        switch (intval(config('app.file_name_style', $style_override))) {
+            case 0: // Traditional
+                $min_decision = intval(config('app.minimum_file_basename_length', $min_override));
+                $max_decision = intval(config('app.maximum_file_basename_length', $max_override));
+                $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
+                $compiled_string = '';
 
-        while (true) {
-            $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
-            $random_string = '';
-            for ($i = 0; $i < mt_rand($min_decision, $max_decision); $i++) $random_string .= $characters[mt_rand(0, strlen($characters) - 1)];
-            $compiled_string = sprintf("%s.%s", $random_string, $extension);
-            if (!Upload::where('alias', $compiled_string)->first()) return $compiled_string;
+                while (true) {
+                    $random_string = '';
+                    for ($i = 0; $i < mt_rand($min_decision, $max_decision); $i++) $random_string .= $characters[mt_rand(0, strlen($characters) - 1)];
+                    if (empty($extension)){
+                        $compiled_string = sprintf("%s", $random_string);
+                    } else {
+                        $compiled_string = sprintf("%s.%s", $random_string, $extension);
+                    }
+                    if (!Upload::where('alias', $compiled_string)->first()) return $compiled_string;
+                }
+                break;
+            case 1: // Dictionary
+                $animals = ["Aardvark","Albatross","Alligator","Alpaca","Ant","Anteater","Antelope","Ape","Armadillo","Ayeaye","Babirusa","Baboon","Badger","Barracuda","Bat","Bear","Beaver","Bee","Bison","Boar","Buffalo","Butterfly","Camel","Caribou","Cat","Caterpillar","Cattle","Chamois","Cheetah","Chicken","Chimpanzee","Chinchilla","Chough","Clam","Cobra","Cockroach","Cod","Corgi","Cormorant","Coyote","Crab","Crane","Crocodile","Crow","Curlew","Deer","Dinosaur","Dog","Dogfish","Dolphin","Donkey","Dotterel","Doge","Dove","Dragon","Dragonfly","Duck","Dugong","Dunlin","Eagle","Echidna","Eel","Eland","Elephant","Elk","Emu","Falcon","Ferret","Finch","Fish","Flamingo","Fly","Fossa","Fowl","Fox","Frog","Galago","Gaur","Gazelle","Gerbil","Gerenuk","Giant","Giraffe","Gnat","Gnu","Goat","Goldfinch","Goldfish","Goose","Gorilla","Goshawk","Grasshopper","Grouse","Guanaco","Guinea","Gull","Hamster","Hare","Hawk","Hedgehog","Heron","Herring","Hippopotamus","Hornet","Horse","Human","Hummingbird","Hyena","Jackal","Jaguar","Jay","Jellyfish","Joey","Kangaroo","Kiwi","Koala","Komodoa","Kouprey","Kudu","Lamprey","Lapwing","Lark","Lemur","Leopard","Lion","Llama","Lobster","Locust","Loris","Louse","Lyrebird","Magpie","Mallard","Manatee","Marten","Meerkat","Mink","Mole","Monkey","Moose","Mosquito","Mouse","Mule","Narwhal","Newt","Nightingale","Octopus","Okapi","Opossum","Oryx","Ostrich","Otter","Owl","Ox","Oyster","Panda","Panther","Parrot","Partridge","Peafowl","Pelican","Penguin","Pheasant","pig","Pig","Pigeon","Pony","Porcupine","Porpoise","Prairie","Quail","Quelea","Rabbit","Raccoon","Rail","Ram","Rat","Raven","Red","Reindeer","Rhinoceros","Rook","Ruff","Salamander","Salmon","Samoyed","Sandpiper","Sardine","Scorpion","Seahorse","Seal","Sealion","Seaurchin","Shark","Sheep","Shrew","Shrimp","Skunk","Snail","Snake","Spider","Squid","Squirrel","Starling","Stingray","Stinkbug","Stork","Swallow","Swan","Tapir","Tarsier","Termite","Tiger","Toad","Trout","Turkey","Turtle","Viper","Vulture","Wallaby","Walrus","Wasp","Water","Weasel","Whale","Wolf","Wolverine","Wombat","Woodcock","Woodpecker","Worm","Wren","Yak","Zebra"];
+                $colors = ["Black","Blue","Blue","Brown","Cerulean","Cyan","Green","Green","Lime","Magenta","Maroon","Orange","Purple","Red","Silver","Veridian","Violet","White","Yellow"];
+                $vowels = ["Absurd","Amazing","Amusing","Angry","Arrogant","Ashamed","Astonishing","Astounding","Awful","Beatific","Bewildering","Breathtaking","Broad","Bucolic","Cheerful","Chucklesome","Confused","Creepy","Disconcerting","Droll","Dulcet","Dusty","Enormous","Evil","Fierce","Fluffy","Foolish","Frightened","Gentle","Gigantic","Gratuitous","Hilarious","Huge","Humorous","Hysterical","Idyllic","Jolly","Kind","Laughable","Mellifluous","Meretricious","Miniature","Numinous","Proud","Quaint","Ridiculous","Shallow","Shocking","Silent","Silly","Soft","Startling","Stunning","Ubiquitous","Witty"];
+                $compiled_string = '';
+
+                while (true) {
+                    if (empty($extension)) {
+                        $compiled_string = sprintf("%s%s%s%d",
+                            $vowels[array_rand($vowels)],
+                            $colors[array_rand($colors)],
+                            $animals[array_rand($animals)],
+                            mt_rand(0, 9));
+                    } else {
+                        $compiled_string = sprintf("%s%s%s%d.%s",
+                            $vowels[array_rand($vowels)],
+                            $colors[array_rand($colors)],
+                            $animals[array_rand($animals)],
+                            mt_rand(0, 9),
+                            $extension);
+                    }
+                    if (!Upload::where('alias', $compiled_string)->first()) return $compiled_string;
+                }
+                break;
+            default:
+                return (env('APP_ENV', 'production') == "debug") ? dd("Invalid file_name_style") : abort(500);
+                break;
         }
     }
 
