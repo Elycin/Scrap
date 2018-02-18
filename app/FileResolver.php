@@ -7,8 +7,10 @@ use Illuminate\Support\Facades\Cache;
 
 class FileResolver extends Model
 {
+    // The table of the migration
     protected $table = "file_resolver";
-    public static $hash_method = "sha256";
+
+    // Fields that can be made with ::create()
     protected $fillable = [
         "hash",
         "mime",
@@ -104,4 +106,8 @@ class FileResolver extends Model
         return sprintf("files/%s", $this->getHash());
     }
 
+    public static function getDuplicationHashingAlgorithm()
+    {
+        return config("app.duplication_checking_algorithm");
+    }
 }

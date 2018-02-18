@@ -93,7 +93,7 @@ class Controller extends BaseController
         }
 
         // hash the data variable as a unique identifier
-        $hash = hash(FileResolver::$hash_method, $data);
+        $hash = hash(FileResolver::getDuplicationHashingAlgorithm(), $data);
 
         // Generate a file path so we don't have to constantly call the same thing
         $path = sprintf("files/%s", $hash);
