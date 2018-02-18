@@ -101,7 +101,7 @@ class Controller extends BaseController
             if (!$resolver_result = FileResolver::where('hash', $hash)->first()) {
                 $resolver_result = FileResolver::create([
                     "hash"           => $hash,
-                    "mime"           => $file->getClientMimeType(),
+                    "mime"           => $file->getMimeType(),
                     "size"           => $file->getSize(),
                     "encrypted_size" => $encrypted_size,
                     "encrypted"      => $request->has("encrypt"),
