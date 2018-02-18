@@ -7,14 +7,14 @@ use App\Upload;
 use Illuminate\Console\Command;
 use Carbon\Carbon;
 
-class CleanFiles extends Command
+class FilesClean extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'clean:files';
+    protected $signature = 'files:clean';
 
     /**
      * The console command description.
