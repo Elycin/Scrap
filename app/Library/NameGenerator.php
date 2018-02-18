@@ -9,6 +9,8 @@
 namespace App\Library;
 
 
+use App\Upload;
+
 class NameGenerator
 {
     public const DICTIONARY = [
@@ -97,38 +99,79 @@ class NameGenerator
 
     public const VALID_CHARS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
 
-    public static function randomTypeGeneration($extension = null, int $min_override, int $max_override)
+    /**
+     * Random String Type Generation
+     *
+     * Generate a random filename.
+     *
+     * @param null $extension
+     * @param int  $min_override
+     * @param int  $max_override
+     * @return string
+     */
+    public static function randomTypeGeneration($extension = null, int $min_override, int $max_override): string
     {
         // determine lengths.
         $min_decision = intval(config('app.minimum_file_basename_length', $min_override));
         $max_decision = intval(config('app.maximum_file_basename_length', $max_override));
 
-        // Placeholder value, will be appended to.
-        $random_string = '';
+        while (true) {
+            // Placeholder value, will be appended to.
+            $random_string = '';
 
-        // Generate random string based on the length
-        for ($i = 0; $i < mt_rand($min_decision, $max_decision); $i++) $random_string .= self::val[mt_rand(0, strlen(self::VALID_CHARS) - 1)];
+            // Generate random string based on the length
+            for ($i = 0; $i < mt_rand($min_decision, $max_decision); $i++) $random_string .= self::val[mt_rand(0, strlen(self::VALID_CHARS) - 1)];
 
-        // Return
-        return (empty($extension)) ? $random_string : sprintf("%s.%s", $random_string, $extension);
+            // Assign the compiled variable
+            $compiled = (empty($extension)) ? $random_string : sprintf("%s.%s", $random_string, $extension);
+
+            // Check if it doesn't exist.
+            if (!self::exists($compiled)) return $compiled;
+        }
     }
 
-    public static function nameTypeGeneration($extension = null)
+    /**
+     * Name Type Filename Generator
+     *
+     * Generate a random filename based on the dictionary.
+     *
+     * @param null $extension
+     * @return string
+     */
+    public static function nameTypeGeneration($extension = null): string
     {
-        // Generate the base name.
-        $base_generation = sprintf("%s%s%s%s",
-            self::arrayRandomSelection(self::DICTIONARY["adjectives"]),
-            self::arrayRandomSelection(self::DICTIONARY["colors"]),
-            self::arrayRandomSelection(self::DICTIONARY["animals"]),
-            mt_rand(0, 9)
-        );
+        while (true) {
+            // Generate the base name.
+            $base_generation = sprintf("%s%s%s%s",
+                self::arrayRandomSelection(self::DICTIONARY["adjectives"]),
+                self::arrayRandomSelection(self::DICTIONARY["colors"]),
+                self::arrayRandomSelection(self::DICTIONARY["animals"]),
+                mt_rand(0, 9)
+            );
 
-        // Return
-        return (isset($extension)) ? sprintf("%s.%s", $base_generation, $extension) : $base_generation;
+            // Assign the compiled variable
+            $compiled = (isset($extension)) ? sprintf("%s.%s", $base_generation, $extension) : $base_generation;
+
+            // Check if it doesn't exist.
+            if (!self::exists($compiled)) return $compiled;
+        }
     }
 
+    /**
+     * Select Random From Array
+     *
+     * Select a random value from the passed array.
+     *
+     * @param $array
+     * @return mixed
+     */
     private static function arrayRandomSelection($array)
     {
         return $array[array_random($array)];
+    }
+
+    public static function exists(string $gen)
+    {
+        return Upload::where('alias', $gen)->first();
     }
 }

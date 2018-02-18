@@ -161,20 +161,14 @@ class Controller extends BaseController
      * @param int    $style_override
      * @return string
      */
-    private function filenameGenerator(string $extension, int $min_override = 6, int $max_override = 13, $style_override = 0): string
+    private function filenameGenerator(string $extension = null, int $min_override = 6, int $max_override = 13, $style_override = 0): string
     {
         switch (intval(config('app.file_name_style', $style_override))) {
             case 0: // Random (Traditional)
-                while (true) {
-                    $gen = NameGenerator::randomTypeGeneration($extension, $min_override, $max_override);
-                    if (!Upload::where('alias', $gen)->first()) return $gen;
-                }
+                return NameGenerator::randomTypeGeneration($extension, $min_override, $max_override);
             case 1: // Dictionary
-                while (true) {
-                    $gen = NameGenerator::nameTypeGeneration($extension);
-                    if (!Upload::where('alias', $gen)->first()) return $gen;
-                }
-            default:
+                return NameGenerator::nameTypeGeneration($extension);
+            default: // Error
                 return (env('APP_ENV', 'production') == "debug") ? dd("Invalid file_name_style") : abort(500);
         }
     }
