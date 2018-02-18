@@ -143,9 +143,9 @@ class NameGenerator
         while (true) {
             // Generate the base name.
             $base_generation = sprintf("%s%s%s%s",
-                self::arrayRandomSelection(self::DICTIONARY["adjectives"]),
-                self::arrayRandomSelection(self::DICTIONARY["colors"]),
-                self::arrayRandomSelection(self::DICTIONARY["animals"]),
+                array_random(self::DICTIONARY["adjectives"]),
+                array_random(self::DICTIONARY["colors"]),
+                array_random(self::DICTIONARY["animals"]),
                 mt_rand(0, 9)
             );
 
@@ -155,19 +155,6 @@ class NameGenerator
             // Check if it doesn't exist.
             if (!self::exists($compiled)) return $compiled;
         }
-    }
-
-    /**
-     * Select Random From Array
-     *
-     * Select a random value from the passed array.
-     *
-     * @param $array
-     * @return mixed
-     */
-    private static function arrayRandomSelection($array)
-    {
-        return $array[array_random($array)];
     }
 
     public static function exists(string $gen)
