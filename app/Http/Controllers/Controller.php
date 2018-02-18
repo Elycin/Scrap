@@ -73,7 +73,7 @@ class Controller extends BaseController
      * The function that will handle request logic to store files on the disk.
      *
      * @param UploadedFile $file
-     * @param bool         $encrypt
+     * @param Request      $request
      * @return mixed
      */
     public function storeFile(UploadedFile $file, Request $request)
@@ -96,7 +96,7 @@ class Controller extends BaseController
         $hash = hash(FileResolver::$hash_method, $data);
 
         // Generate a file path so we don't have to constantly call the same thing
-        $path = "files/" . $hash;
+        $path = sprintf("files/%s", $hash);
 
         // Try to create a database record for the resolver.
         try {
@@ -136,9 +136,7 @@ class Controller extends BaseController
 
         // Try to write the file if it doesn't exist.
         try {
-            if (!Storage::has($path)) {
-                Storage::put($path, $data);
-            }
+            if (!Storage::has($path)) Storage::put($path, $data);
         } catch (\Exception $exception) {
             //Delete database records, failed to write.
             $resolver_result->delete();
@@ -205,7 +203,6 @@ class Controller extends BaseController
             // Return a fake error.
             return abort(404);
         };
-
 
         // Check to make sure the file exists on the disk
         if (Storage::has($resolver->getHashPath())) {
