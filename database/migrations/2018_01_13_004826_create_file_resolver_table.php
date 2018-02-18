@@ -19,7 +19,7 @@ class CreateFileResolverTable extends Migration
             $table->string("mime")->default("application/octet-stream");
             $table->unsignedInteger("size")->default(0);
             $table->unsignedInteger("encrypted_size")->default(0);
-            $table->boolean("encrypted")->deafault(false);
+            $table->boolean('encrypted')->default(false);
             $table->timestamps();
         });
     }
