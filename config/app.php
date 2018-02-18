@@ -148,7 +148,7 @@ return [
          eg. "FluffyCyanDog6"
     |
     */
-    'file_name_style' => 0,
+    'file_name_style' => intval(env('FILENAME_STYLE', 0)),
 
     /*
     |--------------------------------------------------------------------------
