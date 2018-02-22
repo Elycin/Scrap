@@ -150,7 +150,7 @@ class NameGenerator
             );
 
             // Assign the compiled variable
-            $compiled = (isset($extension)) ? sprintf("%s.%s", $base_generation, $extension) : $base_generation;
+            $compiled = (empty($extension)) ? $base_generation : sprintf("%s.%s", $base_generation, $extension);
 
             // Check if it doesn't exist.
             if (!self::exists($compiled)) return $compiled;
