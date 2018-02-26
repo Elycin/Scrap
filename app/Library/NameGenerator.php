@@ -143,9 +143,9 @@ class NameGenerator
         while (true) {
             // Generate the base name.
             $base_generation = sprintf("%s%s%s%s",
-                array_random(self::DICTIONARY["adjectives"]),
-                array_random(self::DICTIONARY["colors"]),
-                array_random(self::DICTIONARY["animals"]),
+                self::paranoidRandomArraySelection(self::DICTIONARY["adjectives"]),
+                self::paranoidRandomArraySelection(self::DICTIONARY["colors"]),
+                self::paranoidRandomArraySelection(self::DICTIONARY["animals"]),
                 mt_rand(0, 9)
             );
 
@@ -160,5 +160,16 @@ class NameGenerator
     public static function exists(string $gen)
     {
         return Upload::where('alias', $gen)->first();
+    }
+
+    /**
+     * Because array_random doesn't work sometimes.
+     *
+     * @param array $array
+     * @return mixed
+     */
+    public static function paranoidRandomArraySelection(array $array)
+    {
+        return $array[mt_rand(0, count($array) - 1)];
     }
 }
