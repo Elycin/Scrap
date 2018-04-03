@@ -1,12 +1,12 @@
+// @flow
 
-/**
- * First we will load all of this project's JavaScript dependencies which
- * includes Vue and other libraries. It is a great starting point when
- * building robust, powerful web applications using Vue and Laravel.
- */
+import React from 'react'
+import ReactDOM from 'react-dom'
 
-require('./bootstrap')
+import './bootstrap'
 
-window.addEventListener('load', () => {
-    document.getElementById('app').innerHTML = 'yawn'
-})
+import Test from './components/test'
+
+// We're simply doing this check because Flow's typing system is weird.
+const element = document.getElementById('app')
+element && ReactDOM.render(<Test />, element)

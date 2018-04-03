@@ -1,0 +1,15 @@
+[ignore]
+.*/vendor/.*
+.*/public/.*
+.*/node_modules/config-chain/test/.*
+
+[include]
+.*/resources/assets/js/.*
+
+[libs]
+
+[lints]
+
+[options]
+
+[strict]
