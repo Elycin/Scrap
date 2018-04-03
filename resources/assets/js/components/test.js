@@ -1,7 +1,7 @@
 // @flow
 
-import React from 'react'
+import React from "react";
 
-const Test = () => <div>test</div>
+const Test = () => <div>test</div>;
 
-export default Test
+export default Test;
