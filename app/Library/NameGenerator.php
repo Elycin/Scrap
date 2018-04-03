@@ -146,20 +146,15 @@ class NameGenerator
                 self::paranoidRandomArraySelection(self::DICTIONARY["adjectives"]),
                 self::paranoidRandomArraySelection(self::DICTIONARY["colors"]),
                 self::paranoidRandomArraySelection(self::DICTIONARY["animals"]),
-                rand(0, 9)
+                self::randomIntWrapper(0, 9)
             );
 
             // Assign the compiled variable
-            $compiled = (empty($extension)) ? $base_generation : sprintf("%s.%s", $base_generation, $extension);
+            $new_alias = (empty($extension)) ? $base_generation : sprintf("%s.%s", $base_generation, $extension);
 
             // Check if it doesn't exist.
-            if (!self::exists($compiled)) return $compiled;
+            if (!Upload::where('alias', $new_alias)->first()) return $new_alias;
         }
-    }
-
-    public static function exists(string $gen)
-    {
-        return Upload::where('alias', $gen)->first();
     }
 
     /**
@@ -170,6 +165,28 @@ class NameGenerator
      */
     public static function paranoidRandomArraySelection(array $array)
     {
-        return $array[random_int(0, count($array) - 1)];
+        return $array[self::randomIntWrapper(0, count($array) - 1)];
+    }
+
+    /**
+     * Random Integer Wrapper
+     *
+     * Loosely handle the exception thrown by random_integer and keep retrying until we get a result.
+     * If we don't get a result, it will eventually time out throwing an error.
+     *
+     * @param $min
+     * @param $max
+     * @return int
+     */
+    private static function randomIntWrapper($min, $max)
+    {
+        while (true) {
+            try {
+                // Try to generate the number and return if successful.
+                return random_int($min, $max);
+            } catch (\Exception $e) {
+                // Entropy is empty, retry until we can.
+            }
+        }
     }
 }
