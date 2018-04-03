@@ -120,7 +120,7 @@ class NameGenerator
             $random_string = '';
 
             // Generate random string based on the length
-            for ($i = 0; $i < mt_rand($min_decision, $max_decision); $i++) $random_string .= self::VALID_CHARS[mt_rand(0, strlen(self::VALID_CHARS) - 1)];
+            for ($i = 0; $i < random_int($min_decision, $max_decision); $i++) $random_string .= self::VALID_CHARS[mt_rand(0, strlen(self::VALID_CHARS) - 1)];
 
             // Assign the compiled variable
             $compiled = (empty($extension)) ? $random_string : sprintf("%s.%s", $random_string, $extension);
@@ -170,6 +170,6 @@ class NameGenerator
      */
     public static function paranoidRandomArraySelection(array $array)
     {
-        return $array[rand(0, count($array) - 1)];
+        return $array[random_int(0, count($array) - 1)];
     }
 }
