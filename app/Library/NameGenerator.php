@@ -146,7 +146,7 @@ class NameGenerator
                 self::paranoidRandomArraySelection(self::DICTIONARY["adjectives"]),
                 self::paranoidRandomArraySelection(self::DICTIONARY["colors"]),
                 self::paranoidRandomArraySelection(self::DICTIONARY["animals"]),
-                mt_rand(0, 9)
+                rand(0, 9)
             );
 
             // Assign the compiled variable
@@ -170,6 +170,6 @@ class NameGenerator
      */
     public static function paranoidRandomArraySelection(array $array)
     {
-        return $array[mt_rand(0, count($array) - 1)];
+        return $array[rand(0, count($array) - 1)];
     }
 }
