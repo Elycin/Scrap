@@ -29,7 +29,7 @@ class FileResolver extends Model
      */
     public static function getCachedFromUpload(Upload $upload): self
     {
-        return Cache::tags('resolver_model')->remember(strtolower($upload->getAlias()), config('app.cache_time', 10), function () use ($upload) {
+        return Cache::tags('resolver')->remember(strtolower($upload->getAlias()), config('app.cache_time', 10), function () use ($upload) {
             return self::where('id', $upload->getResolverId())->firstOrFail();
         });
     }

@@ -50,9 +50,6 @@ Below are additional parameters you can pass to modify information about the upl
 The use of redis is recommended, and more so required for this application.
 Redis works by storing data in the memory of your server and Scrap will dump data into it occasionally for faster access times, this is so that data will not be read from the disk if your server is in high demand.
 
-You may change redis to `memcached` if you configure the memory limits on your system.  
-You can adjust the time for a file to remain in the cache by adjusting the `FILE_CACHE_THRESHOLD` variable in the `.env`
-
 
 ## Automatic File Deletion
 Scrap has the ability via the form of a cronjob every hour or console command via artisan to automatically delete files older than `DAYS_TO_STORE` in the `.env`

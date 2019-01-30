@@ -73,7 +73,7 @@ class Controller extends BaseController
      * The function that will handle request logic to store files on the disk.
      *
      * @param UploadedFile $file
-     * @param Request      $request
+     * @param Request $request
      * @return mixed
      */
     public function storeFile(UploadedFile $file, Request $request)
@@ -102,11 +102,11 @@ class Controller extends BaseController
         try {
             if (!$resolver_result = FileResolver::where('hash', $hash)->first()) {
                 $resolver_result = FileResolver::create([
-                    "hash"           => $hash,
-                    "mime"           => $file->getMimeType(),
-                    "size"           => $file->getSize(),
+                    "hash" => $hash,
+                    "mime" => $file->getMimeType(),
+                    "size" => $file->getSize(),
                     "encrypted_size" => $encrypted_size,
-                    "encrypted"      => $request->has("encrypt"),
+                    "encrypted" => $request->has("encrypt"),
                 ]);
             }
         } catch (\Exception $exception) {
@@ -117,11 +117,11 @@ class Controller extends BaseController
         // Try to create a database record for the alias.
         try {
             $upload_result = Upload::create([
-                "user_id"           => Auth::user()->id,
-                "resolver_id"       => $resolver_result->id,
+                "user_id" => Auth::user()->id,
+                "resolver_id" => $resolver_result->id,
                 "original_filename" => $file->getClientOriginalName(),
-                "alias"             => $this->filenameGenerator($file->getClientOriginalExtension()),
-                "user_expiration"   => ($request->has("expires")) ? Carbon::parse($request->input("expires"))->toDateTimeString() : null
+                "alias" => $this->filenameGenerator($file->getClientOriginalExtension()),
+                "user_expiration" => ($request->has("expires")) ? Carbon::parse($request->input("expires"))->toDateTimeString() : null
             ]);
         } catch (\Exception $exception) {
             // If we've gotten this far, a file has been stored and we should delete it.
@@ -156,10 +156,11 @@ class Controller extends BaseController
      * Consults with the database to create an alias that is not used.
      *
      * @param string $extension
-     * @param int    $min_override
-     * @param int    $max_override
-     * @param int    $style_override
+     * @param int $min_override
+     * @param int $max_override
+     * @param int $style_override
      * @return string
+     * @throws \Exception
      */
     private function filenameGenerator(string $extension = null, int $min_override = 6, int $max_override = 13, $style_override = 0): string
     {
@@ -206,8 +207,8 @@ class Controller extends BaseController
 
             // Compile the headers
             $headers = [
-                "Content-Length"      => $resolver->getSize(),
-                "Content-Type"        => $resolver->getMime(),
+                "Content-Length" => $resolver->getSize(),
+                "Content-Type" => $resolver->getMime(),
                 "Content-Disposition" => sprintf('inline; filename="%s"', $file->original_filename)
             ];
 
@@ -306,13 +307,16 @@ class Controller extends BaseController
     public function deleteFile(Request $request)
     {
         if ($this->authByRequestValid($request)) {
-            // Get Metadata
-            $file = Upload::getCached($request->input("filename"));
+            // Get the record form the database
+            $file = Upload::where('alias', $request->input("filename"))->firstOrFail();
 
+            // Make sure the authenticated user owns the file.
             if ($file->getOwnerId() == Auth::user()->id) {
-                $file->uncache();
-                $file->delete();
+                // Remove the file from the cache
+                $file->removeFromCache();
 
+                // Delete the file from the database.
+                $file->delete();
                 return response("OK", 200);
             } else {
                 return abort(403);

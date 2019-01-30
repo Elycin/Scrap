@@ -13,8 +13,8 @@ use App\Upload;
 
 class NameGenerator
 {
-    public const DICTIONARY = [
-        "animals"    => [
+    const DICTIONARY = [
+        "animals" => [
             "Aardvark", "Albatross", "Alligator", "Alpaca",
             "Ant", "Anteater", "Antelope", "Ape",
             "Armadillo", "Ayeaye", "Babirusa", "Baboon",
@@ -72,7 +72,7 @@ class NameGenerator
             "Wombat", "Woodcock", "Woodpecker", "Worm", "Wren",
             "Yak", "Zebra"
         ],
-        "colors"     => [
+        "colors" => [
             "Black", "Blue", "Blue", "Brown",
             "Cerulean", "Cyan", "Green", "Green",
             "Lime", "Magenta", "Maroon", "Orange",
@@ -97,7 +97,7 @@ class NameGenerator
         ],
     ];
 
-    public const VALID_CHARS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
+    const VALID_CHARS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
 
     /**
      * Random String Type Generation
@@ -105,9 +105,10 @@ class NameGenerator
      * Generate a random filename.
      *
      * @param null $extension
-     * @param int  $min_override
-     * @param int  $max_override
+     * @param int $min_override
+     * @param int $max_override
      * @return string
+     * @throws \Exception
      */
     public static function randomTypeGeneration($extension = null, int $min_override, int $max_override): string
     {
@@ -123,10 +124,12 @@ class NameGenerator
             for ($i = 0; $i < random_int($min_decision, $max_decision); $i++) $random_string .= self::VALID_CHARS[mt_rand(0, strlen(self::VALID_CHARS) - 1)];
 
             // Assign the compiled variable
-            $compiled = (empty($extension)) ? $random_string : sprintf("%s.%s", $random_string, $extension);
+            $compiled = (empty($extension)) ?
+                $random_string :
+                sprintf("%s.%s", $random_string, $extension);
 
             // Check if it doesn't exist.
-            if (!self::exists($compiled)) return $compiled;
+            if (!Upload::where('alias', $compiled)->first()) return $compiled;
         }
     }
 
@@ -146,7 +149,7 @@ class NameGenerator
                 self::paranoidRandomArraySelection(self::DICTIONARY["adjectives"]),
                 self::paranoidRandomArraySelection(self::DICTIONARY["colors"]),
                 self::paranoidRandomArraySelection(self::DICTIONARY["animals"]),
-                self::randomIntWrapper(0, 9)
+                rand(0, 9)
             );
 
             // Assign the compiled variable
@@ -165,28 +168,6 @@ class NameGenerator
      */
     public static function paranoidRandomArraySelection(array $array)
     {
-        return $array[self::randomIntWrapper(0, count($array) - 1)];
-    }
-
-    /**
-     * Random Integer Wrapper
-     *
-     * Loosely handle the exception thrown by random_integer and keep retrying until we get a result.
-     * If we don't get a result, it will eventually time out throwing an error.
-     *
-     * @param $min
-     * @param $max
-     * @return int
-     */
-    private static function randomIntWrapper($min, $max)
-    {
-        while (true) {
-            try {
-                // Try to generate the number and return if successful.
-                return random_int($min, $max);
-            } catch (\Exception $e) {
-                // Entropy is empty, retry until we can.
-            }
-        }
+        return $array[rand(0, count($array) - 1)];
     }
 }

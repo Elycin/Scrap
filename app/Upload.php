@@ -16,9 +16,15 @@ class Upload extends Model
     ];
 
 
+    /**
+     * Get the cached upload by the alias.
+     *
+     * @param string $alias
+     * @return Upload
+     */
     public static function getCached(string $alias): self
     {
-        return Cache::tags('file_model')->remember(strtolower($alias), config('app.cache_time', 10), function () use ($alias) {
+        return Cache::tags('file')->remember(strtolower($alias), config('app.cache_time', 10), function () use ($alias) {
             return self::where('alias', $alias)->firstOrFail();
         });
     }
@@ -26,9 +32,9 @@ class Upload extends Model
     /**
      * Remove the entry from the cache
      */
-    public function uncache()
+    public function removeFromCache()
     {
-        Cache::tags('file_model')->forget(strtolower($this->alias));
+        Cache::tags('file')->forget(strtolower($this->alias));
     }
 
     /**
@@ -67,19 +73,34 @@ class Upload extends Model
         return $this->alias;
     }
 
-    public function hasUserDefinedExpirationDate()
+    /**
+     * Check if the upload has an expiration date.
+     *
+     * @return bool
+     */
+    public function hasExpirationDate()
     {
         return isset($this->user_expiration);
     }
 
-    public function getUserDefinedExpirationDate()
+    /**
+     * Get the date of when the upload expires.
+     *
+     * @return mixed
+     */
+    public function getExpirationDate()
     {
         return $this->user_expiration;
     }
 
-    public function userDefinedExpirationDateIsExpired()
+    /**
+     * Check to see if the uploaded alias has expired and should be deleted.
+     *
+     * @return bool
+     */
+    public function isExpired()
     {
-        return Carbon::now()->gt(Carbon::parse($this->getUserDefinedExpirationDate()));
+        return Carbon::now()->gt(Carbon::parse($this->getExpirationDate()));
     }
 
 
