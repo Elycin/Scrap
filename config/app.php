@@ -22,7 +22,7 @@ return [
     |
     | This value determines the "environment" your application is currently
     | running in. This may determine how you prefer to configure various
-    | services your application utilizes. Set this in your ".env" file.
+    | services the application utilizes. Set this in your ".env" file.
     |
     */
 
@@ -53,6 +53,8 @@ return [
     */
 
     'url' => env('APP_URL', 'http://localhost'),
+
+    'asset_url' => env('ASSET_URL', null),
 
     /*
     |--------------------------------------------------------------------------
@@ -95,6 +97,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Faker Locale
+    |--------------------------------------------------------------------------
+    |
+    | This locale will be used by the Faker PHP library when generating fake
+    | data for your database seeds. For example, this will be used to get
+    | localized telephone numbers, street address information and more.
+    |
+    */
+
+    'faker_locale' => 'en_US',
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |
@@ -107,96 +122,6 @@ return [
     'key' => env('APP_KEY'),
 
     'cipher' => 'AES-256-CBC',
-
-    /*
-    |--------------------------------------------------------------------------
-    | Logging Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Here you may configure the log settings for your application. Out of
-    | the box, Laravel uses the Monolog PHP logging library. This gives
-    | you a variety of powerful log handlers / formatters to utilize.
-    |
-    | Available Settings: "single", "daily", "syslog", "errorlog"
-    |
-    */
-
-    'log' => env('APP_LOG', 'single'),
-    'log_level' => env('APP_LOG_LEVEL', 'debug'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Database Call Caching
-    |--------------------------------------------------------------------------
-    |
-    | Database calls can be quite expensive on CPU time.
-    | The goal of this application was to focus on performance.
-    | changing this value will have an effect with how long database
-    | results will stay in memory.
-    |
-    */
-    'cache_time' => intval(env('APP_CACHE_TIME', 10)),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Filename generation style
-    |--------------------------------------------------------------------------
-    |
-    | 0: "Traditional" naming, eg. 'J0nIVwPi'
-    | 1: Dictionary naming. easy to remember.
-         Built like this: Vowel + Color + Animal + Single-digit number
-         eg. "FluffyCyanDog6"
-    |
-    */
-    'file_name_style' => intval(env('FILENAME_STYLE', 0)),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Filename Basename Length
-    |--------------------------------------------------------------------------
-    |
-    | Here you can decide the minimum and maximum of how long the basename
-    | of a filename should be.
-    |
-    | **Only used with filename style "Tradititonal" (file_name_style 0)**
-    |
-    */
-    'minimum_file_basename_length' => intval(env('MIN_FILE_BASENAME_LENGTH', 6)),
-    'maximum_file_basename_length' => intval(env('MAX_FILE_BASENAME_LENGTH', 13)),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Application Cache Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Scrap uses the cache heavily for performance.
-    | These are just settings the application will read and reflect from
-    | the .env file. Please change them there.
-    |
-    | > CACHE_TIME - Number of minutes to store files under
-                          FILE_CACHE_THRESHOLD bytes in memory.
-
-    | > CACHE_THRESHOLD - any files under this number in bytes will
-                               be stored in memory.
-
-    | > CACHE_DAYS_TO_STORE - How long should uploaded files remain on the server?
-    */
-
-    'file_cache_time' => intval(env('CACHE_TIME', 10)),
-    'file_cache_threshold' => intval(env('CACHE_THRESHOLD', 5242880)),
-    'days_to_store' => intval(env('CACHE_DAYS_TO_STORE', 10)),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Duplication Checking Algorithm
-    |--------------------------------------------------------------------------
-    |
-    | Scrap uses hashing of file data to prevent duplicated files.
-    | Here you may specifically change the algorithm that is used.
-    |
-    */
-    'duplication_checking_algorithm' => strtolower(env('DUPLICATION_CHECKING_ALGORITHM', "sha256")),
-
 
     /*
     |--------------------------------------------------------------------------

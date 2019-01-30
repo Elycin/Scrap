@@ -11,7 +11,10 @@
 |
 */
 
-Route::post('/upload', 'Controller@upload');
-Route::get('/{filename}', 'Controller@getFile');
-Route::get('/{filename}/is-cached', 'Controller@isFileCached');
-Route::post('/{filename}/delete', 'Controller@deleteFile');
+Route::get('/', 'Controller@home');
+
+// Uploading routes
+Route::post('/upload', 'UploadController@upload');
+Route::get('/{filename}', 'UploadController@getFile');
+Route::get('/{filename}/is-cached', 'UploadController@isFileCached');
+Route::post('/{filename}/delete', 'UploadController@deleteFile');
