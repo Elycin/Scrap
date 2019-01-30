@@ -11,7 +11,7 @@
 |
 */
 
-Route::get('/', 'Controller@home');
+Route::get('/', 'Controller@home')->name('home');
 
 // Uploading routes
 Route::post('/upload', 'UploadController@upload');
