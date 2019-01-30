@@ -1,69 +1,65 @@
-<p align="center"><img src="https://laravel.com/assets/img/components/logo-laravel.svg"></p>
+# Scrap
+A high performance file upload solution for ShareX.
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+## Requirements
+Scrap is powered by `php7.2`, `redis-server` and `mysql-server`.  
+You must have these installed on your system in order for scrap to work.
 
-## About Laravel
+If you tweak your memory limit on memcached, you can also use that if specified in the `.env`
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as:
+## Features
+- User authentication
+- In memory caching for files under `FILE_CACHE_THRESHOLD` bytes in size
+- Adjustable caching times under `APP_CACHE_TIME`
+- Duplication checking (duplicated files are aliased)
+- Native Illuminate\Laravel Encryption Facade usage (AES-256-CBC)
+- Proper HTTP Responses (200, 201, 400, 403, 404, 419, 500, 503)
+- Dynamic Protocol Detection (Will automatically return HTTPS or HTTP based on POST method)
+- CloudFlare Reverse Proxy support
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+<sub><sup>any highlighted text in this section can be found in the .env</sup></sub>
 
-Laravel is accessible, yet powerful, providing tools needed for large, robust applications.
+## Installation
+```bash
+$ git clone https://github.com/Elycin/Scrap
+$ cd Scrap
+$ composer install
+$ cp .env.example .env
+# At this point, please edit the .env and configure the database with MySQL. 
+$ php artisan key:generate
+$ php artisan migrate
+```
 
-## Learning Laravel
+Want a single threaded ready to go instance rather than configuring a webserver?  
+run: `php artisan serve --host 0.0.0.0 --port 8000`
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of any modern web application framework, making it a breeze to get started learning the framework.
+## How to use
+By default, the upload function in the applications controller looks for the fields `username` and `password`.  
+In ShareX, you should be able to specify a custom domain such as `http://$YOUR_DOMAIN/upload` with the `POST` Parameters as follows:
+- `username` - Your application username
+- `password` - Your password
+- `file` - The uploaded file (also known as the "File form upload" field)
 
-If you're not in the mood to read, [Laracasts](https://laracasts.com) contains over 1100 video tutorials on a range of topics including Laravel, modern PHP, unit testing, JavaScript, and more. Boost the skill level of yourself and your entire team by digging into our comprehensive video library.
+## Optional Parameters
+Below are additional parameters you can pass to modify information about the uploaded file.
 
-## Laravel Sponsors
+- `encrypt` (true/false) - Encrypt the user data.
+- `expires` (datetime/timestamp) - Expiration date of the file.
 
-We would like to extend our thanks to the following sponsors for helping fund on-going Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell):
+## Cache Server Usage
+The use of redis is recommended, and more so required for this application.
+Redis works by storing data in the memory of your server and Scrap will dump data into it occasionally for faster access times, this is so that data will not be read from the disk if your server is in high demand.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- [UserInsights](https://userinsights.com)
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
-- [Invoice Ninja](https://www.invoiceninja.com)
-- [iMi digital](https://www.imi-digital.de/)
-- [Earthlink](https://www.earthlink.ro/)
-- [Steadfast Collective](https://steadfastcollective.com/)
-- [We Are The Robots Inc.](https://watr.mx/)
-- [Understand.io](https://www.understand.io/)
 
-## Contributing
+## Automatic File Deletion
+Scrap has the ability via the form of a cronjob every hour or console command via artisan to automatically delete files older than `DAYS_TO_STORE` in the `.env`
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+To set up automatic scheduling, add this line to your crontab:
+```bash
+* * * * * php /path/to/scrap/artisan schedule:run >> /dev/null/ 2>&1
+```
 
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Or you may choose to manually run the cleanup by:
+```bash
+$ php artisan clean:files
+```
